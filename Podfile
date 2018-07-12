@@ -10,7 +10,6 @@ target 'Glovo' do
   pod 'Alamofire'
   pod 'SwiftyJSON'
   pod 'GoogleMaps'
-  pod 'SnapKit'
 
   target 'GlovoTests' do
     inherit! :search_paths

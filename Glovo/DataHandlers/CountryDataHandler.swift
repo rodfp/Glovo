@@ -48,7 +48,7 @@ class CountryDataHandler : NSObject {
     return results.first as? Country
   }
   
-  static func retrieveExistingCountries() -> [Country]{
+  static func retrieveExistingCountries(withOrderedCities : Bool? = false) -> [Country]{
     let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Country")
     request.returnsObjectsAsFaults = false
     let sort = NSSortDescriptor(key: "name", ascending: true)

@@ -18,7 +18,8 @@ class CityDataHandler : NSObject {
     let code = json["code"].stringValue
     let name = json["name"].stringValue
     let countryCode = json["country_code"].stringValue
-    let workingArea = json["working_area"].arrayValue.map { $0.stringValue }
+    let filterBlanks = json["working_area"].arrayValue.filter { $0.stringValue != "" }
+    let workingArea = filterBlanks.map{ $0.stringValue }
     let currency = json["currency"].string
     let enabled = json["enabled"].bool
     let timeZone = json["time_zone"].string

@@ -23,7 +23,7 @@ class RequestManager : NSObject {
   //URLs used in the application.
   
   private var apiURL: URL {
-    return URL(string: "http://localhost:3000/api")!
+    return URL(string: "http://192.168.0.15:3000/api")!
   }
   
   private var countriesURL : URL {
@@ -72,8 +72,8 @@ class RequestManager : NSObject {
     let url = citiesDetailsURL(cityCode: cityCode)
     apiRequest(method: .get, url: url) { (success, statusCode, data, error) in
       if success{
-        guard let cities = data else { completion(false); return }
-        print(cities.dictionaryValue)
+        guard let city = data else { completion(false); return }
+        CityDataHandler.saveCity(city)
         completion(true)
       }else{
         completion(false)
