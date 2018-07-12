@@ -49,10 +49,14 @@ class MapViewController: UIViewController {
   }
   
   private func setupApp(){
+    self.cities = CityDataHandler.retrieveExistingCities()
+    self.setupAllMarkersInMap()
     RequestManager.shared.getAllCountries { _ in
       RequestManager.shared.getAllCities{ _ in
         self.cities = CityDataHandler.retrieveExistingCities()
         self.setupAllMarkersInMap()
+        self.selectACityButton.isEnabled = true
+        self.currentLocationButton.isEnabled = true
       }
     }
   }
