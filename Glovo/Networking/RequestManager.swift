@@ -23,7 +23,7 @@ class RequestManager : NSObject {
   //URLs used in the application.
   
   private var apiURL: URL {
-    return URL(string: "http://192.168.0.15:3000/api")!
+    return URL(string: "http://192.168.15.2:3000/api")!
   }
   
   private var countriesURL : URL {

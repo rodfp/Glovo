@@ -39,10 +39,13 @@ class MapViewController: UIViewController {
   let shortInfoHeight : CGFloat = 80.0
   let normalSelectorHeight : CGFloat = 160.0
   let shortSelectorHeight : CGFloat = 40.0
+  var locationManager: CLLocationManager!
+  var currentLocation : CLLocation?
   
   override func viewDidLoad() {
     super.viewDidLoad()
     setupApp()
+    NotificationCenter.default.addObserver(self, selector: #selector(startLocation), name: .locationPermissionUpdated, object: nil)
   }
   
   private func setupApp(){
@@ -60,8 +63,26 @@ class MapViewController: UIViewController {
     }
   }
   
+  private func checkForCurrentLocation(){
+    if PermissionsManager.shared.locationGranted == nil{
+      PermissionsManager.shared.requestLocationPermission()
+    }else{
+      self.startLocation()
+    }
+  }
+  
   @IBAction func currentLocationAction(_ sender: Any) {
-    
+    checkForCurrentLocation()
+  }
+  
+  @objc fileprivate func startLocation(){
+    if PermissionsManager.shared.locationGranted == true{
+      self.locationManager = CLLocationManager()
+      self.locationManager.delegate = self
+      self.locationManager.startUpdatingLocation()
+    }else{
+      print("No permissions granted =(")
+    }
   }
   
   @IBAction func selectACityAction(_ sender: Any) {
@@ -164,13 +185,13 @@ class MapViewController: UIViewController {
     self.mapView.clear()
   }
   
-  fileprivate func cityOfCurrentPosition(position: GMSCameraPosition) -> City?{
+  fileprivate func cityOfCurrentPosition(position: CLLocationCoordinate2D) -> City?{
     guard let cities = self.cities else { return nil }
     for city in cities{
       guard let workingArea = city.workingArea else { break }
       for area in workingArea{
         guard let polygonPath = GMSPath(fromEncodedPath: area) else { break }
-        if GMSGeometryContainsLocation(position.target, polygonPath, true){ return city }
+        if GMSGeometryContainsLocation(position, polygonPath, true){ return city }
       }
     }
     return nil
@@ -191,6 +212,22 @@ class MapViewController: UIViewController {
   
 }
 
+extension MapViewController : CLLocationManagerDelegate{
+  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    guard let location: CLLocation = locations.last else { return }
+    locationManager.stopUpdatingLocation()
+    guard let city = self.cityOfCurrentPosition(position: location.coordinate) else{
+      let alert = UIAlertController(title: "City not supported", message: "Your city is currently not supported.", preferredStyle: .alert)
+      let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+      alert.addAction(okAction)
+      self.present(alert, animated: true, completion: nil)
+      return
+    }
+    updateCityIfNeededAndSetupDetails(city)
+    zoomToCity(city)
+  }
+}
+
 extension MapViewController : GMSMapViewDelegate{
   
   func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
@@ -202,7 +239,7 @@ extension MapViewController : GMSMapViewDelegate{
   
   func mapView(_ mapView: GMSMapView, didChange position: GMSCameraPosition) {
     if position.zoom >= MapsZoom.city.rawValue{
-      guard let city = cityOfCurrentPosition(position: position) else {
+      guard let city = cityOfCurrentPosition(position: position.target) else {
         setupCityDetails(nil)
         return
       }
